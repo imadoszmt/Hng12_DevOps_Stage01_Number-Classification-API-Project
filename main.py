@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 from typing import List, Dict, Union
@@ -73,10 +73,13 @@ async def classify_number(number: str):
     try:
         num = int(number)
     except ValueError:
-        return {
-            "number": number,  # Ensure the invalid input is included here
-            "error": True
-        }, 400  # Return a valid 400 Bad Request response
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "number": number,
+                "error": True
+            }
+        )
     
     return {
         "number": num,
