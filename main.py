@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 from typing import List, Dict, Union
@@ -9,14 +9,21 @@ app = FastAPI()
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
+# Add a root endpoint
+@app.get("/")
+async def root():
+    return {"message": "Welcome to Number Classification API"}
 
 def is_armstrong(n: int) -> bool:
     """Check if a number is an Armstrong number."""
+    if n < 0:
+        return False
     str_n = str(n)
     power = len(str_n)
     return sum(int(digit) ** power for digit in str_n) == n
@@ -39,13 +46,9 @@ def is_perfect(n: int) -> bool:
 
 def get_properties(n: int) -> List[str]:
     """Get the properties of a number (armstrong, odd/even)."""
-    properties = []
+    properties = ["odd" if n % 2 else "even"]
     if is_armstrong(n):
-        properties.append("armstrong")
-    if n % 2 == 0:
-        properties.append("even")
-    else:
-        properties.append("odd")
+        properties.insert(0, "armstrong")
     return properties
 
 def get_digit_sum(n: int) -> int:
@@ -53,30 +56,28 @@ def get_digit_sum(n: int) -> int:
     return sum(int(digit) for digit in str(abs(n)))
 
 def get_fun_fact(n: int) -> str:
-   """Get a fun fact about the number from the Numbers API."""
-   try:
-       response = requests.get(f"http://numbersapi.com/{n}/math")
-       if response.status_code == 200:
-           return response.text
-       return f"{n} is an interesting number."
-   except:
-       return f"{n} is an interesting number."
+    """Get a fun fact about the number from the Numbers API."""
+    try:
+        response = requests.get(f"http://numbersapi.com/{n}/math?json")
+        if response.status_code == 200:
+            return response.json().get("text", f"{n} is an interesting number.")
+        return f"{n} is an interesting number."
+    except:
+        return f"{n} is an interesting number."
 
 @app.get("/api/classify-number")
-async def classify_number(number: Union[int, str]) -> Dict:
+async def classify_number(number: str) -> Dict:
     """
     Classify a number and return its properties.
     """
     try:
         num = int(number)
     except ValueError:
-        raise HTTPException(
-            status_code=400,
-            detail= {
-                "number": number,
-                "error": True
-            }
-        )
+        return {
+            "number": number,  # Include the invalid input
+            "error": True
+        }
+    
     return {
         "number": num,
         "is_prime": is_prime(num),
@@ -88,4 +89,4 @@ async def classify_number(number: Union[int, str]) -> Dict:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
