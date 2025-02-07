@@ -70,11 +70,13 @@ async def classify_number(number: Union[int, str]) -> Dict:
     try:
         num = int(number)
     except ValueError:
-        return {
-            "number": number,
-            "error": True
-        }
-
+        raise HTTPException(
+            status_code=400,
+            detail= {
+                "number": number,
+                "error": True
+            }
+        )
     return {
         "number": num,
         "is_prime": is_prime(num),
