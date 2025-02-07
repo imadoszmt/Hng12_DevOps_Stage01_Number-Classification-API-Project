@@ -66,7 +66,7 @@ def get_fun_fact(n: int) -> str:
         return f"{n} is an interesting number."
 
 @app.get("/api/classify-number")
-async def classify_number(number: str) -> Dict:
+async def classify_number(number: str):
     """
     Classify a number and return its properties.
     """
