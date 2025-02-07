@@ -1,4 +1,4 @@
-from fastapi import FastAPI,HTTPException
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 from typing import List, Dict, Union
@@ -66,20 +66,18 @@ def get_fun_fact(n: int) -> str:
         return f"{n} is an interesting number."
 
 @app.get("/api/classify-number")
-async def classify_number(number: str):
+async def classify_number(number: str, response: Response):
     """
     Classify a number and return its properties.
     """
     try:
         num = int(number)
     except ValueError:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "number": number,
-                "error": True
-            }
-        )
+        response.status_code = 400  
+        return {  
+            "number": number,  
+            "error": True
+        }
     
     return {
         "number": num,
